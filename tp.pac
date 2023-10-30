@@ -1,5 +1,5 @@
 ﻿| package |
-package := Package name: 'tp'.
+package := Package name: 'TP_Paradigmas_Grupo_6'.
 package paxVersion: 1;
 	basicComment: ''.
 
@@ -23,10 +23,10 @@ package globalAliases: (Set new
 	yourself).
 
 package setPrerequisites: #(
-	'..\..\Documents\Dolphin Smalltalk 7\Core\Object Arts\Dolphin\Base\Dolphin'
-	'..\..\Documents\Dolphin Smalltalk 7\Core\Object Arts\Dolphin\Base\Dolphin Legacy Date & Time'
-	'..\..\Documents\Dolphin Smalltalk 7\Core\Object Arts\Dolphin\Base\Dolphin Message Box'
-	'..\..\Documents\Dolphin Smalltalk 7\Core\Object Arts\Dolphin\MVP\Presenters\Prompters\Dolphin Prompter').
+	'..\Documents\Dolphin Smalltalk 7\Core\Object Arts\Dolphin\Base\Dolphin'
+	'..\Documents\Dolphin Smalltalk 7\Core\Object Arts\Dolphin\Base\Dolphin Legacy Date & Time'
+	'..\Documents\Dolphin Smalltalk 7\Core\Object Arts\Dolphin\Base\Dolphin Message Box'
+	'..\Documents\Dolphin Smalltalk 7\Core\Object Arts\Dolphin\MVP\Presenters\Prompters\Dolphin Prompter').
 
 package!
 
@@ -58,7 +58,7 @@ Object subclass: #Persona
 	poolDictionaries: ''
 	classInstanceVariableNames: ''!
 Object subclass: #ReunionesGrupales
-	instanceVariableNames: 'descripcion costo coordinador paciente id fecha'
+	instanceVariableNames: 'descripcion costo coordinador pacientes id fecha'
 	classVariableNames: 'UltimoCodigo'
 	poolDictionaries: ''
 	classInstanceVariableNames: ''!
@@ -98,7 +98,7 @@ agregarPacienteReunion
 	| profe msj eleccion minutaPorRegistrar pac costoMinuta |
 	costoMinuta := 0.
 	eleccion := ''.
-	msj := ''.
+	msj := 'Listado de Reuniones:' , String cr.
 	profe := ''.
 	minutaPorRegistrar := MinutaActividad new.
 	reunionesGrupales do: 
@@ -106,11 +106,13 @@ agregarPacienteReunion
 			Date today <= reunion fecha
 				ifTrue: 
 					[profe := self busquedaProfesionalDni: reunion coordinador numeroDni.
-					msj := msj , 'Profesional: ' , profe nombre printString , ' ' , profe apellido printString , ' ID: '
-								, reunion id , ' Fecha: '
-								, reunion fecha printString , String cr]].
-	MessageBox notify: msj , String cr , 'seleccione el id: '.
-	eleccion := Prompter prompt: 'seleccione el id: ' caption: 'Agregando paciente...'.
+					msj := msj , '. ID: ' , reunion id , ' - Fecha: ' , reunion fecha printString , String cr
+								, '            - Coordinador: ' , profe nombre printString
+								, ' ' , profe apellido printString
+								, String cr]].
+	MessageBox notify: msj , String cr , 'A continuacion se solicitara el ID de Reunion...'
+		caption: 'Asignando Paciente a Reunion.'.
+	eleccion := Prompter prompt: 'ID de Reunion:' caption: 'Asignando Paciente a Reunion.'.
 	msj := ''.
 	reunionesGrupales do: 
 			[:reunion |
@@ -121,6 +123,7 @@ agregarPacienteReunion
 					pac = 0
 						ifFalse: 
 							[reunion agregarPaciente: pac.
+							MessageBox notify: 'Se agrego Paciente correctamente' caption: 'Aviso.'.
 							minutaPorRegistrar actividad: reunion.
 							minutaPorRegistrar paciente: pac.
 							MinutaActividad incrementarCod.
@@ -131,35 +134,27 @@ agregarPacienteReunion
 							minutasDeActividad add: minutaPorRegistrar]]]!
 
 agregarPacienteSesionG
-	| msj eleccion dniSeleccionado pac minutaPorRegistrar costoMinuta |
+	| msj eleccion pac minutaPorRegistrar costoMinuta |
 	costoMinuta := SesionesDeGimnasia costo.
 	eleccion := ''.
-	dniSeleccionado := 0.
-	msj := ''.
+	msj := 'Listado de Sesiones:' , String cr.
 	minutaPorRegistrar := MinutaActividad new.
 	sesionesGimnasias do: 
 			[:sesion |
 			Date today <= sesion fecha
-				ifTrue: [msj := msj , ' ID: ' , sesion id , ' Fecha: ' , sesion fecha printString , String cr]].
-	MessageBox notify: msj , String cr , 'seleccione el id: ' caption: ' Sesiones disponibles.'.
-	eleccion := Prompter prompt: 'seleccione el id: '.
+				ifTrue: [msj := msj , '. ID: ' , sesion id , ' - Fecha: ' , sesion fecha printString , String cr]].
+	MessageBox notify: msj , String cr , 'A continuacion se solicitara el ID de la Sesion...' caption: ' Asignando Paciente a Sesion.'.
+	eleccion := Prompter prompt: 'ID de Sesion:' caption: ' Asignando Paciente a Sesion.'.
 	msj := ''.
 	sesionesGimnasias do: 
 			[:sesion |
 			sesion id = eleccion
 				ifTrue: 
-					[pacientes do: 
-							[:pacien |
-							msj := msj , 'Nombre paciente: ' , pacien nombre , ' dni:  ' , pacien numeroDni printString
-										, String cr].
-					MessageBox notify: msj , String cr , 'seleccione el dni: '.
-					dniSeleccionado := (Prompter prompt: 'seleccione el dni ') asNumber.
-					pac := pacientes detect: [:each | each numeroDni = dniSeleccionado] ifNone: [nil].
-					pac isNil
-						ifTrue: [MessageBox notify: 'NO EXISTE EL DNI']
+					[pac := self muestreoPaciente.
+					pac = 0
 						ifFalse: 
 							[sesion agregarPaciente: pac.
-							MessageBox notify: 'Se agrego EXITOSAMENTE'.
+							MessageBox notify: 'Se agrego Paciente correctamente' caption: 'Aviso.'.
 							minutaPorRegistrar actividad: sesion.
 							minutaPorRegistrar paciente: pac.
 							MinutaActividad incrementarCod.
@@ -172,25 +167,25 @@ agregarPacienteSesionG
 asignarObraSocial
 	| msj credencial codigo |
 	codigo := ''.
-	msj := ''.
+	msj := 'Listado:' , String cr.
 	obrasSociales do: 
 			[:obra |
-			msj := msj , 'Nombre ' , obra nombre printString , '     Codigo: ' , obra codigo printString
+			msj := msj , '. ', obra nombre printString , '   Codigo: ' , obra codigo printString
 						, String cr].
-	MessageBox notify: msj , String cr , 'seleccione el codigo: ' caption:'Obras sociales disponibles.'.
+	MessageBox notify: msj , String cr , 'A continuacion se solicitara el codigo...' caption: 'Asignando Obra Social.'.
 	codigo := (Prompter
-				prompt: 'Si tiene obra social ingrese el numero de la misma, de lo contrario deje el campo vacio: '
-					caption: 'Ingresando numero de obra social...') asNumber.
+				prompt: 'Si tiene obra social ingrese el codigo de la misma, de lo contrario deje el campo vacio: '
+					caption: 'Asignando Obra Social') asNumber.
 	credencial := obrasSociales detect: [:each | each codigo = codigo 	] ifNone: [nil].
 	credencial isNil
 		ifTrue: 
 			[codigo = 0
 				ifTrue: 
-					[MessageBox notify:'Paciente agregado exitosamente'caption:'Carga paciente.' .
+					[MessageBox notify:'Paciente asignado correctamente.'caption: 'Asignando Obra Social' .
 					^0]
-				ifFalse: [MessageBox warning: 'Codigo inexistente' caption: 'Falla en la carga de paciente.']]
+				ifFalse: [MessageBox warning: 'CODIGO INEXISTENTE' caption: 'Error.']]
 		ifFalse: 
-			[MessageBox notify: 'Paciente agregado exitosamente' caption:'Carga paciente.'.
+			[MessageBox notify: 'Paciente asignado correctamente.' caption:'Asignando Obra Social'.
 			^credencial]!
 
 busquedaProfesionalDni: unDni
@@ -203,19 +198,19 @@ informeParaObraSocial
 	os := self muestreoObraSocial.
 	os = 0
 		ifFalse: 
-			[fecha1 := Date fromString: (Prompter prompt: 'Ingrese la fecha de inicio del rango DD/MM/YYYY').
-			fecha2 := Date fromString: (Prompter prompt: 'Ingrese la fecha de fin del rango DD/MM/YYYY').
+			[fecha1 := Date fromString: (Prompter prompt: 'Fecha de Inicio del rango (DD/MM/YYYY):' caption: 'Informe para Obra Social.').
+			fecha2 := Date fromString: (Prompter prompt: 'Fecha de Fin del rango (DD/MM/YYYY):' caption: 'Informe para Obra Social.').
 			minutasDeActividad do: 
 					[:min |
 					min pesoPaciente = 0
 						ifFalse: 
 							[min fechaAsistencia <= fecha2 & (min fechaAsistencia >= fecha1) & (min paciente obraSocial = os)
 								ifTrue: 
-									[msj := msj , 'Nombre: ' , min paciente nombre , ' costo: ' , min costo printString , String cr.
+									[msj := msj ,'. ', min paciente nombre , ' ' , min paciente apellido, ' - Costo: $' , min costo printString , String cr.
 									total := total + min costo]]].
-			msj := msj , String cr , 'El costo total es de: ' , total printString
-						, ' la obra social debe cubrir: ' , (total * os porcentajeServicio / 100) printString.
-			MessageBox notify: msj]!
+			msj := msj , String cr , 'El costo total es de: $' , total printString , String cr
+						, 'La obra social debe cubrir: $' , (total * os porcentajeServicio / 100) printString.
+			MessageBox notify: msj caption: 'Informe para Obra Social.']!
 
 informeReunion
 	| msj msj2 eleccion costoTotal |
@@ -223,58 +218,59 @@ informeReunion
 	msj := ''.
 	reunionesGrupales do: 
 			[:reunion |
-			msj := msj , 'Nombre prof: ' , reunion coordinador nombre , '  ' , reunion coordinador apellido
-						, ' Id: ' , reunion id
-						, ' Fecha: ' , reunion fecha printString
+			msj := msj , '.  ID: ' , reunion id , ' - Fecha: ' , reunion fecha printString , String cr
+						, '            - Coordinador: ' , reunion coordinador nombre
+						, '  ' , reunion coordinador apellido
 						, String cr].
-	MessageBox notify: msj , String cr , 'seleccione el id: ' caption: 'Reuniones disponibles'.
-	eleccion := Prompter prompt: 'seleccione el id: ' caption: 'Ingresando id de reunion deseada...'.
-	msj := ''.
+	MessageBox notify: msj , String cr , 'A continuacion se solicitara el ID de Reunion...'
+		caption: 'Seleccion de Reunion.'.
+	eleccion := Prompter prompt: 'ID de la Reunion:' caption: 'Informe de Reunion'.
+	msj := 'Listado de pacientes:' , String cr.
 	reunionesGrupales do: 
 			[:reunion |
 			reunion id = eleccion
 				ifTrue: 
-					[pacientes do: 
+					[reunion pacientes do: 
 							[:pacien |
-							msj := msj , 'Paciente: ' , pacien nombre , ' ' , pacien apellido , ' dni:  '
-										, pacien numeroDni printString , String cr].
+							msj := msj , '. ' , pacien nombre , ' ' , pacien apellido , '  DNI: ' , pacien numeroDni printString
+										, String cr].
 					costoTotal := reunion costo + reunion coordinador tarifaReunion.
-					msj2 := 'Profesional : ' , reunion coordinador nombre , ' ' , reunion coordinador apellido
-								, String cr , 'Costo total:'
+					msj2 := 'Coordinador: ' , reunion coordinador nombre , ' ' , reunion coordinador apellido
+								, String cr , 'Costo total: $'
 								, costoTotal printString , String cr
-								, 'Descripcion:' , reunion descripcion
-								, String cr , reunion fecha printString
-								, String cr , msj
-								, String cr.
-					MessageBox notify: msj2 caption: 'Informe de reunion.']]!
+								, 'Descripcion: ' , reunion descripcion
+								, String cr , 'Fecha: '
+								, reunion fecha printString , String cr
+								, msj , String cr.
+					MessageBox notify: msj2 caption: 'Informe de Reunion.']]!
 
 informeSesion
 	| msj msj2 eleccion  |
 	eleccion := ''.
 	msj := ''.
-	sesionesGimnasias do: [:sesion | msj := msj , ' Id: ' , sesion id , ' Fecha: ' , sesion fecha printString , String cr].
-	MessageBox notify: msj , String cr , 'seleccione el id: ' caption: 'Sesiones disponibles.'.
-	eleccion := Prompter prompt: 'seleccione el id: ' caption: 'Ingresando id de la sesion deseada...'.
-	msj := ''.
+	sesionesGimnasias do: [:sesion | msj := msj , '. ID: ' , sesion id , ' - Fecha: ' , sesion fecha printString , String cr].
+	MessageBox notify: msj , String cr , 'A continuacion se solicitara el ID de Sesion...' caption: 'Seleccion de Sesion.'.
+	eleccion := Prompter prompt: 'ID de la Sesion:' caption: 'Informe de Sesion'.
+	msj := 'Listado de pacientes:' , String cr.
 	sesionesGimnasias do: 
 			[:sesion |
 			sesion id = eleccion
 				ifTrue: 
-					[pacientes do: 
+					[sesion pacientes do: 
 							[:pacien |
-							msj := msj , 'Paciente: ' , pacien nombre , ' ' , pacien apellido , ' dni:  '
+							msj := msj , '. ' , pacien nombre , ' ' , pacien apellido , '  DNI: '
 										, pacien numeroDni printString , String cr].
 					
-					msj2 := 'Costo total:' , SesionesDeGimnasia costo printString , String cr , 'Descripción:' , sesion descripcion
-								, String cr , sesion fecha printString
+					msj2 := 'Costo total: $' , SesionesDeGimnasia costo printString , String cr , 'Descripcion: ' , sesion descripcion
+								, String cr ,' Fecha: ', sesion fecha printString
 								, String cr , msj
 								, String cr.
-					MessageBox notify: msj2 caption: 'Informe de sesión.']]!
+					MessageBox notify: msj2 caption: 'Informe de Sesion.']]!
 
 inicializar
 	| x |
-	x := Prompter prompt: 'Ingrese el costo para las sesiones de gimnasia: '
-				caption: 'Ingresando costo de la sesión...'.
+	x := (Prompter prompt: 'Ingrese el costo para las Sesiones de Gimnasia: '
+				caption: 'Costo de Sesiones de Gimnasia.')asNumber.
 	pacientes := OrderedCollection new.
 	profesionales := OrderedCollection new.
 	consultasClinicas := OrderedCollection new.
@@ -295,19 +291,21 @@ menu
 	[op = 0] whileFalse: 
 			[MessageBox
 				notify: 'MENU:
-01- Alta obra social.
-02- Alta profesional.
-03- Alta paciente.
-04- Alta reunion.
-05- Alta sesion.
-06- Alta consulta.
-07- Registrar minuta de actividad.
-08- Agregar paciente a reunion.
-09- Agregar paciente a sesion de gimnasia.
-10- Generar deuda de obra social.
-11- Generar informe de reuniones.
-12- Generar informe de sesiones de gimnasia.
+01- Alta Obra Social.
+02- Alta Profesional.
+03- Alta Paciente.
+04- Alta Reunion.
+05- Alta Sesion.
+06- Alta Consulta.
+07- Agregar Paciente a Reunion.
+08- Agregar Paciente a Sesion de Gimnasia.
+09- Registrar Minuta de Actividad.
+10- Generar Deuda de Obra Social.
+11- Generar Informe de Reuniones.
+12- Generar Informe de Sesiones de Gimnasia.
 00- Salir.
+
+Ingrese la opcion a continuacion...
 '.
 			op := (Prompter prompt: 'Ingrese opción:') asNumber asInteger.
 			op = 1 ifTrue: [self regObraSocial].
@@ -317,139 +315,151 @@ menu
 					[cantidad := obrasSociales size.
 					cantidad = 0
 						ifTrue: 
-							[MessageBox warning: 'No hay obras sociales registradas, para continuar ingrese al menos una. ']
+							[MessageBox
+								warning: 'Para registrar un paciente se necesita al menos una Obra Social cargada, para continuar registre al menos una. '
+								caption: 'Error.']
 						ifFalse: [self regPaciente]].
 			op = 4
 				ifTrue: 
 					[cantidad := profesionales size.
 					cantidad = 0
-						ifTrue: [MessageBox warning: 'No hay profesionales registrados, para continuar ingrese al menos uno. ']
+						ifTrue: 
+							[MessageBox
+								warning: 'Para registrar una Reunion se necesita al menos un Profesional registrado, para continuar registre al menos uno. '
+								caption: 'Error.']
 						ifFalse: [self regReunion]].
-			op = 5
-				ifTrue: 
-					[cantidad := profesionales size.
-					cantidad = 0
-						ifTrue: [MessageBox warning: 'No hay profesionales registrados, para continuar ingrese al menos uno. ']
-						ifFalse: 
-							[cantidad := pacientes size.
-							cantidad = 0
-								ifTrue: [MessageBox warning: 'No hay pacientes registrados, para continuar ingrese al menos uno. ']
-								ifFalse: [self regPaciente]]].
+			op = 5 ifTrue: [self regSesionGimnasia].
 			op = 6
 				ifTrue: 
 					[cantidad := profesionales size.
 					cantidad = 0
-						ifTrue: [MessageBox warning: 'No hay profesionales registrados, para continuar ingrese al menos uno. ']
+						ifTrue: 
+							[MessageBox
+								warning: 'Para registrar una Consulta se necesita al menos un Profesional registrado, para continuar registre al menos uno. '
+								caption: 'Error.']
 						ifFalse: 
 							[cantidad := pacientes size.
 							cantidad = 0
-								ifTrue: [MessageBox warning: 'No hay pacientes registrados, para continuar ingrese al menos uno. ']
-								ifFalse: [self regPaciente]]].
+								ifTrue: [MessageBox warning: 'No hay Pacientes registrados, para continuar registre al menos uno. ']
+								ifFalse: [self regConsultasClinicas]]].
 			op = 7
+				ifTrue: 
+					[cantidad := pacientes size.
+					cantidad = 0
+						ifTrue: 
+							[MessageBox warning: 'No hay Pacientes registrados, para continuar registre al menos uno. '
+								caption: 'Error.']
+						ifFalse: 
+							[cantidad := reunionesGrupales size.
+							cantidad = 0
+								ifTrue: 
+									[MessageBox
+										warning: 'Para registrar un paciente se necesita al menos una Reunion cargada, para continuar registre al menos una. '
+										caption: 'Error.']
+								ifFalse: [self agregarPacienteReunion]]].
+			op = 8
+				ifTrue: 
+					[cantidad := pacientes size.
+					cantidad = 0
+						ifTrue: 
+							[MessageBox warning: 'No hay Pacientes registrados, para continuar ingrese al menos uno. '
+								caption: 'Error']
+						ifFalse: 
+							[cantidad := sesionesGimnasias size.
+							cantidad = 0
+								ifTrue: 
+									[MessageBox
+										warning: 'Para registrar un paciente se necesita al menos una Sesion de Gimnasia cargada, para continuar registre al menos una. '
+										caption: 'Error.']
+								ifFalse: [self agregarPacienteSesionG]]].
+			op = 9
 				ifTrue: 
 					[cantidad := minutasDeActividad size.
 					cantidad = 0
 						ifTrue: 
 							[MessageBox
-								warning: 'No hay actividades registradas/asignadas, para continuar ingrese al menos una. ']
-						ifFalse: [self regMinutaActividad ]].
-			op = 8
-				ifTrue: 
-					[cantidad := pacientes size.
-					cantidad = 0
-						ifTrue: [MessageBox warning: 'No hay pacientes registrados, para continuar ingrese al menos uno. ']
-						ifFalse: 
-							[cantidad := reunionesGrupales size.
-							cantidad = 0
-								ifTrue: [MessageBox warning: 'No hay reuniones registradas, para continuar ingrese al menos una. ']
-								ifFalse: [self agregarPacienteReunion]]].
-			op = 9
-				ifTrue: 
-					[cantidad := pacientes size.
-					cantidad = 0
-						ifTrue: [MessageBox warning: 'No hay pacientes registrados, para continuar ingrese al menos uno. ']
-						ifFalse: 
-							[cantidad := sesionesGimnasias size.
-							cantidad = 0
-								ifTrue: 
-									[MessageBox warning: 'No hay sesiones de gimnasia registradas, para continuar ingrese al menos una. ']
-								ifFalse: [self agregarPacienteSesionG]]].
+								warning: 'No hay Actividades registradas/asignadas, para continuar registre al menos una. '
+								caption: 'Error.']
+						ifFalse: [self regMinutaActividad]].
 			op = 10
 				ifTrue: 
 					[cantidad := obrasSociales size.
 					cantidad = 0
 						ifTrue: 
-							[MessageBox warning: 'No hay obras sociales registradas, para continuar ingrese al menos una. ']
+							[MessageBox warning: 'No hay Obras Sociales registradas, para continuar ingrese al menos una. '
+								caption: 'Error']
 						ifFalse: [self informeParaObraSocial]].
 			op = 11
 				ifTrue: 
 					[cantidad := reunionesGrupales size.
 					cantidad = 0
-						ifTrue: [MessageBox warning: 'No hay reuniones registradas, para continuar ingrese al menos una. ']
+						ifTrue: 
+							[MessageBox warning: 'No hay Reuniones registradas, para continuar ingrese al menos una. '
+								caption: 'Error']
 						ifFalse: [self informeReunion]].
 			op = 12
 				ifTrue: 
 					[cantidad := sesionesGimnasias size.
 					cantidad = 0
 						ifTrue: 
-							[MessageBox warning: 'No hay sesiones de gimnasia registradas, para continuar ingrese al menos una. ']
+							[MessageBox warning: 'No hay Sesiones de Gimnasia registradas, para continuar ingrese al menos una. '
+								caption: 'Error']
 						ifFalse: [self informeSesion]]]!
 
 muestreoObraSocial
 	| msj credencial codigo |
 	codigo := ''.
-	msj := ''.
+	msj := 'Listado:' , String cr.
 	obrasSociales do: 
 			[:obra |
-			msj := msj , 'Nombre ' , obra nombre printString , '     Codigo: ' , obra codigo printString
+			msj := msj , '. ', obra nombre printString , '   Codigo: ' , obra codigo printString
 						, String cr].
-	MessageBox notify: msj , String cr , 'seleccione el codigo: ' caption: 'Obras sociales disponibles.'.
+	MessageBox notify: msj , String cr , 'A continuacion se solicitara el codigo...' caption: 'Obras Sociales Disponibles'.
 	codigo := (Prompter
-				prompt: 'Si tiene obra social ingrese el numero de la misma, de lo contrario deje el campo vacio: '
-				caption: 'Ingresando numero de obra social...') asNumber.
+				prompt: 'Codigo:'
+				caption: 'Seleccion de Obra Social.') asNumber.
 	credencial := obrasSociales detect: [:each | each codigo = codigo] ifNone: [nil].
 	credencial isNil
 		ifTrue: 
-			[MessageBox warning: 'NO EXISTE LA OBRA SOCIAL'.
+			[MessageBox warning: 'CODIGO INEXISTENTE.' caption:'Error.'.
 			^0]
 		ifFalse: 
-			[MessageBox notify: 'Se seleccionó la Obra social'.
-			^credencial]!
+			[^credencial]!
 
 muestreoPaciente
 	| msj dniSeleccionado pac |
-	msj := ''.
-	pacientes do: 
-			[:pacien |
-			msj := msj , 'Nombre paciente: ' , pacien nombre , ' dni:  ' , pacien numeroDni printString
-						, String cr].
-	MessageBox notify: msj , String cr , 'seleccione el dni: '.
-	dniSeleccionado := (Prompter prompt: 'seleccione el dni ') asNumber.
+	msj := 'Listado:' , String cr.
+	pacientes
+		do: [:pacien | msj := msj , '. ' , pacien nombre ,' ', pacien apellido, '  DNI: ' , pacien numeroDni printString , String cr].
+	MessageBox notify: msj , String cr , 'A continuacion seleccione el DNI del Paciente...'
+		caption: 'Pacientes registrados.'.
+	dniSeleccionado := (Prompter prompt: 'Seleccione DNI de Paciente: ' caption: 'Seleccion de Paciente.') asNumber.
 	pac := pacientes detect: [:each | each numeroDni = dniSeleccionado] ifNone: [nil].
 	pac isNil
 		ifTrue: 
-			[MessageBox warning: 'NO EXISTE EL DNI'.
+			[MessageBox warning: 'NO EXISTE EL DNI' caption: 'Error.'.
 			^0]
 		ifFalse: 
-			[MessageBox notify: 'Se seleccionó el paciente'.
+			[MessageBox notify: 'Se seleccionó el Paciente correctamente.' caption:'Aviso.'. 
 			^pac]!
 
 muestreoProfesional
 	| msj dniSeleccionado pro |
-	msj := 'Nombre: ' , String cr.
+	msj := 'Listado: ' , String cr.
 	profesionales do: 
 			[:profe |
-			msj := msj , profe nombre , ' ' , profe apellido , ' dni: ' , profe numeroDni printString
-						, profe tipoProfesion , String cr].
-	MessageBox notify: msj , String cr , 'seleccione el dni: '.
-	dniSeleccionado := (Prompter prompt: 'seleccione el dni ') asNumber.
+			msj := msj , '. ', profe nombre , ' ' , profe apellido , '  DNI: ' , profe numeroDni printString
+						,'  - ', profe tipoProfesion , String cr].
+	MessageBox notify: msj , String cr , 'A continuacion seleccione el DNI del Profesional...'
+caption: 'Profesionales registrados.'.
+	dniSeleccionado := (Prompter prompt: 'Seleccione DNI de Profesional: ' caption: 'Seleccion de Profesional.') asNumber.
 	pro := profesionales detect: [:each | each numeroDni = dniSeleccionado] ifNone: [nil].
 	pro isNil
 		ifTrue: 
 			[MessageBox warning: 'NO EXISTE EL DNI'.
 			^0]
 		ifFalse: 
-			[MessageBox notify: 'Se seleccionó el profesional'.
+			[MessageBox notify: 'Se seleccionó el Profesional correctamente.' caption:'Aviso.'. 
 			^pro]!
 
 regConsultasClinicas
@@ -481,7 +491,7 @@ regConsultasClinicas
 regMinutaActividad
 	| idSeleccionado minutaPorIngresar profe pac msj |
 	msj := ''.
-	MessageBox notify: 'Ingrese DNI de paciente a registrar en la minuta de actividad'.
+	MessageBox notify: 'A continuacion ingrese los datos solicitados...' caption: 'Registro de Minuta de Actividad.'.
 	pac := self muestreoPaciente.
 	pac = 0
 		ifFalse: 
@@ -489,14 +499,14 @@ regMinutaActividad
 					[:minun |
 					minun actividad fecha = Date today & (minun paciente = pac) & (minun pesoPaciente = 0)
 						ifTrue: 
-							[msj := msj , 'ID:  ' , minun id printString , '   ' , minun paciente nombre , '  dni:  '
-										, minun paciente numeroDni printString , '    '
+							[msj := msj , 'ID:  ' , minun id printString , '  ' , minun paciente nombre ,'  ', minun paciente apellido, '  DNI: '
+										, minun paciente numeroDni printString , ' - '
 										, minun actividad class printString , String cr]].
-			MessageBox notify: msj , String cr , 'Seleccione el ID '.
-			idSeleccionado := (Prompter prompt: 'Seleccione el ID ') asNumber].
+			MessageBox notify: msj , String cr , 'A continuacion seleccione el ID de la Actividad...' caption:'Registro de Minuta de Actividad.'.
+			idSeleccionado := (Prompter prompt: 'ID de Actividad:' caption:'Registro de Minuta de Actividad.') asNumber.
 	minutaPorIngresar := minutasDeActividad detect: [:each | each id = idSeleccionado] ifNone: [nil].
-	minutaPorIngresar pesoPaciente: (Prompter prompt: 'Ingrese el peso del paciente.') asNumber.
-	profe := MessageBox confirm: 'Desea ingresar un profesional de asistencia?'.
+	minutaPorIngresar pesoPaciente: (Prompter prompt: 'Ingrese el Peso del Paciente (KG):' caption:'Registro de Minuta de Actividad.') asNumber.
+	profe := MessageBox confirm: 'Desea ingresar un profesional de asistencia?' caption:'Registro de Minuta de Actividad.'.
 	profe = true
 		ifTrue: 
 			[profe := self muestreoProfesional.
@@ -504,11 +514,11 @@ regMinutaActividad
 				ifFalse: 
 					[minutaPorIngresar profesional: profe.
 					consultasClinicas add: minutaPorIngresar.
-					MessageBox notify: 'Se ingreso exitosamente la minuta']]
+					MessageBox notify: 'Se registro la Minuta correctamente.' caption: 'Registro de Minuta de Actividad.']]
 		ifFalse: 
 			[minutaPorIngresar profesional: 0.
 			consultasClinicas add: minutaPorIngresar.
-			MessageBox notify: 'Se ingreso exitosamente la minuta']!
+			MessageBox notify: 'Se registro la Minuta correctamente.' caption: 'Registro de Minuta de Actividad.']].!
 
 regObraSocial
 	| obraSocialPorIngresar |
@@ -570,13 +580,13 @@ ConsultasClinicas comment: ''!
 !ConsultasClinicas methodsFor!
 
 cargaDatos
-	MessageBox notify: 'A continuacion ingrese los datos solicitados. ' caption: ''.
-	descripcion := (Prompter prompt: 'Ingrese la descripcion '
-				caption: 'Ingresando datos de la consulta...') asString.
-	tipoConsulta := (Prompter prompt: 'Ingrese el tipo de consulta: '
-				caption: 'Ingresando datos de la consulta...') asString.
-	fecha := Date fromString: (Prompter prompt: 'Ingrese la fecha de la reunion DD/MM/YYYY'
-						caption: 'Ingresando datos de la Consulta Clinica...')!
+	MessageBox notify: 'A continuacion ingrese los datos solicitados. ' caption: 'Alta de Consultas Clinicas.'.
+	descripcion := (Prompter prompt: 'Descripcion de la Consulta:'
+				caption: 'Alta de Consultas Clinicas.') asString.
+	tipoConsulta := (Prompter prompt: 'Tipo de consulta:'
+				caption: 'Alta de Consultas Clinicas.') asString.
+	fecha := Date fromString: (Prompter prompt: 'Fecha de realizacion (DD/MM/YYYY):'
+						caption: 'Alta de Consultas Clinicas.')!
 
 descripcion
 	^descripcion!
@@ -713,11 +723,11 @@ ObraSocial comment: ''!
 !ObraSocial methodsFor!
 
 cargaDatos
-	MessageBox notify: 'A continuacion ingrese los datos solicitados. ' caption: 'Cargue datos de la obra social. '.
-	codigo := (Prompter prompt: 'Ingrese el codigo: ' caption: 'Ingresando datos de obra social...') asNumber .
-	nombre := (Prompter prompt: 'Ingrese nombre: ' caption: 'Ingresando datos de obra social...') asString.
-	porcentajeServicio := (Prompter prompt: 'Ingrese el porcentaje de descuento: ' caption: 'Ingresando datos de obra social...') asNumber.
-!
+	MessageBox notify: 'A continuacion ingrese los datos solicitados. ' caption: 'Alta de Obra Social.'.
+	nombre := (Prompter prompt: 'Nombre: ' caption: 'Alta de Obra Social.') asString.
+	codigo := (Prompter prompt: 'Codigo: ' caption: 'Alta de Obra Social.') asNumber.
+	porcentajeServicio := (Prompter prompt: 'Porcentaje de descuento: ' caption: 'Alta de Obra Social.')
+				asNumber!
 
 codigo
 	^codigo!
@@ -825,16 +835,16 @@ ReunionesGrupales comment: ''!
 !ReunionesGrupales methodsFor!
 
 agregarPaciente: unPaciente
-	paciente add: unPaciente!
+	pacientes add: unPaciente!
 
 cargaDatos
 	self inicializarColeccion.
-	MessageBox notify: 'A continuacion ingrese los datos solicitados. ' asString.
-	descripcion := (Prompter prompt: 'Ingrese la descripción: ' caption: 'Ingresando datos de la reunion grupal...') asString.
-	costo := (Prompter prompt: 'Ingrese eI costo: ' caption: 'Ingresando datos de la reunion grupal...') asNumber.
+	MessageBox notify: 'A continuacion ingrese los datos solicitados. ' caption: 'Alta de Reunion Grupal.' asString.
+	descripcion := (Prompter prompt: 'Descripcion de la reunion: ' caption: 'Alta de Reunion Grupal.') asString.
+	costo := (Prompter prompt: 'Costo: ' caption: 'Alta de Reunion Grupal.') asNumber.
 	ReunionesGrupales incrementarCodReunion.
 	id := UltimoCodigo printString.
-	fecha := Date fromString: (Prompter prompt: 'Ingrese la fecha de la reunion DD/MM/YYYY' caption: 'Ingresando datos de la reunion grupal...')!
+	fecha := Date fromString: (Prompter prompt: 'Fecha de realizacion (DD/MM/YYYY):' caption: 'Alta de Reunion Grupal.')!
 
 coordinador
 	^coordinador!
@@ -867,7 +877,13 @@ id: anObject
 	id := anObject!
 
 inicializarColeccion
-	paciente := OrderedCollection new! !
+	pacientes := OrderedCollection new!
+
+pacientes
+	^pacientes!
+
+pacientes: anObject
+	pacientes := anObject! !
 !ReunionesGrupales categoriesForMethods!
 agregarPaciente:!public! !
 cargaDatos!public! !
@@ -882,6 +898,8 @@ fecha:!accessing!private! !
 id!accessing!private! !
 id:!accessing!private! !
 inicializarColeccion!public! !
+pacientes!accessing!private! !
+pacientes:!accessing!private! !
 !
 
 !ReunionesGrupales class methodsFor!
@@ -901,13 +919,16 @@ SesionesDeGimnasia comment: ''!
 !SesionesDeGimnasia categoriesForClass!Kernel-Objects! !
 !SesionesDeGimnasia methodsFor!
 
+agregarPaciente: unPaciente
+	pacientes add: unPaciente!
+
 cargaDatos
 	self inicializarColeccion.
-	MessageBox notify: 'A continuacion ingrese los datos solicitados. ' asString.
-	descripcion := (Prompter prompt: 'Ingrese la descripción: ' caption: 'Ingresando datos de la sesion de gimnasia...') asString.
+	MessageBox notify: 'A continuacion ingrese los datos solicitados. ' caption: 'Alta de Sesion de Gimnasia.'asString.
+	descripcion := (Prompter prompt: 'Descripción  de la Sesion:' caption: 'Alta de Sesion de Gimnasia.') asString.
 	SesionesDeGimnasia incrementarCodReunion.
 	id := UltimoCodigo printString.
-	fecha := Date fromString: (Prompter prompt: 'Ingrese la fecha de la reunion DD/MM/YYYY' caption: 'Ingresando datos de la sesion de gimnasia...')!
+	fecha := Date fromString: (Prompter prompt: 'Fecha de realizacion (DD/MM/YYYY):' caption: 'Alta de Sesion de Gimnasia.')!
 
 descripcion
 	^descripcion!
@@ -928,8 +949,15 @@ id: anObject
 	id := anObject!
 
 inicializarColeccion
-	pacientes := OrderedCollection new! !
+	pacientes := OrderedCollection new!
+
+pacientes
+	^pacientes!
+
+pacientes: anObject
+	pacientes := anObject! !
 !SesionesDeGimnasia categoriesForMethods!
+agregarPaciente:!public! !
 cargaDatos!public! !
 descripcion!accessing!private! !
 descripcion:!accessing!private! !
@@ -938,6 +966,8 @@ fecha:!public! !
 id!public! !
 id:!public! !
 inicializarColeccion!public! !
+pacientes!accessing!private! !
+pacientes:!accessing!private! !
 !
 
 !SesionesDeGimnasia class methodsFor!
@@ -966,16 +996,15 @@ Paciente comment: ''!
 !Paciente methodsFor!
 
 cargaDatos
-	MessageBox notify: 'A continuacion ingrese los datos solicitados. ' caption: 'Cargue datos de paciente.'.
-	tipoDni := (Prompter prompt: 'Ingrese tipo DNI: ' caption: 'Ingresando datos de paciente...') asString.
-	numeroDni := (Prompter prompt: 'Ingrese numero DNI: ' caption: 'Ingresando datos de paciente...') asNumber.
-	apellido := (Prompter prompt: 'Ingrese apellido: ' caption: 'Ingresando datos de paciente...') asString.
-	nombre := (Prompter prompt: 'Ingrese nombre' caption: 'Ingresando datos de paciente...') asString.
-	direccion := (Prompter prompt: 'Ingrese direccion' caption: 'Ingresando datos de paciente...') asString.
-	telefono := (Prompter prompt: 'Ingrese numero telefono: ' caption: 'Ingresando datos de paciente...') asNumber.
-	
+	MessageBox notify: 'A continuacion ingrese los datos solicitados. ' caption: 'Alta de Paciente.'.
+	tipoDni := (Prompter prompt: 'Tipo de Documento: ' caption: 'Alta de Paciente.') asString.
+	numeroDni := (Prompter prompt: 'Numero de Documento: ' caption: 'Alta de Paciente.') asNumber.
+	nombre := (Prompter prompt: 'Nombre: ' caption: 'Alta de Paciente.') asString.
+	apellido := (Prompter prompt: 'Apellido: ' caption: 'Alta de Paciente.') asString.
+	direccion := (Prompter prompt: 'Direccion:' caption: 'Alta de Paciente.') asString.
+	telefono := (Prompter prompt: 'Numero de Telefono:' caption: 'Alta de Paciente.') asNumber.
 	Paciente incrementarCodPaciente.
-	codigoPaciente:= UltimoCodigo.!
+	codigoPaciente := UltimoCodigo!
 
 codigoPaciente
 	^codigoPaciente!
@@ -1014,17 +1043,17 @@ Profesional comment: ''!
 !Profesional methodsFor!
 
 cargaDatos
-	MessageBox notify: 'A continuacion ingrese los datos solicitados. ' caption: 'Cargue datos de profesional.'.
-	tipoDni := (Prompter prompt: 'Ingrese tipo DNI: 'caption: 'Ingresando datos de profesional...') asString.
-	numeroDni := (Prompter prompt: 'Ingrese numero DNI: ' caption: 'Ingresando datos de profesional...') asNumber.
-	apellido := (Prompter prompt: 'Ingrese apellido: ' caption: 'Ingresando datos de profesional...') asString.
-	nombre := (Prompter prompt: 'Ingrese nombre' caption: 'Ingresando datos de profesional...') asString.
-	direccion := (Prompter prompt: 'Ingrese direccion' caption: 'Ingresando datos de profesional...') asString.
-	telefono := (Prompter prompt: 'Ingrese numero telefono: ' caption: 'Ingresando datos de profesional...') asNumber.
-	matricula := (Prompter prompt: 'Ingrese numero de matricula' caption: 'Ingresando datos de profesional...') asString.
-	tarifaConsulta := (Prompter prompt: 'Ingrese tarifa de la consulta: ' caption: 'Ingresando datos de profesional...') asNumber.
-	tarifaReunion := (Prompter prompt: 'Ingrese tarifa de la reunion:' caption: 'Ingresando datos de profesional...') asNumber.
-	tipoProfesion := (Prompter prompt: 'Ingrese tipo de profesional: ' caption: 'Ingresando datos de profesional...') asString!
+	MessageBox notify: 'A continuacion ingrese los datos solicitados. ' caption: 'Alta de Profesional.'.
+	tipoDni := (Prompter prompt: 'Tipo de Documento:' caption: 'Alta de Profesional.') asString.
+	numeroDni := (Prompter prompt: 'Numero de Documento: ' caption: 'Alta de Profesional.') asNumber.
+	nombre := (Prompter prompt: 'Nombre:' caption: 'Alta de Profesional.') asString.
+	apellido := (Prompter prompt: 'Apellido:' caption: 'Alta de Profesional.') asString.
+	direccion := (Prompter prompt: 'Direccion:' caption: 'Alta de Profesional.') asString.
+	telefono := (Prompter prompt: 'Numero de Telefono: ' caption: 'Alta de Profesional.') asNumber.
+	matricula := (Prompter prompt: 'Numero de Matricula:' caption: 'Alta de Profesional.') asString.
+	tarifaConsulta := (Prompter prompt: 'Tarifa de Consulta:' caption: 'Alta de Profesional.') asNumber.
+	tarifaReunion := (Prompter prompt: 'Tarifa de Reunion Grupal:' caption: 'Alta de Profesional.') asNumber.
+	tipoProfesion := (Prompter prompt: 'Tipo de Profesional:' caption: 'Alta de Profesional.') asString!
 
 matricula
 	^matricula!
